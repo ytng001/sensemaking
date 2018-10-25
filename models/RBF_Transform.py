@@ -8,7 +8,7 @@ sys.path.append(os.path.join(BASE_DIR, '../utils'))
 import tf_util
 from sklearn.metrics.pairwise import rbf_kernel
 
-clusters = 11 #odd number * 3
+clusters = 3 #odd number * 3
 steps = 1/clusters
 
 #define cluster centrod
@@ -24,7 +24,7 @@ def input_rbfTransform(point_cloud, is_training, bn_decay=None, K=3):
     num_point = point_cloud.get_shape()[1].value
     clustersCenterArray = []
     
-    print ("Create cluster centroids")
+
     for x in range(clusters+1):
         x = (-1 + (steps * (x) * 2 ))
         for y in range(clusters + 1):
@@ -33,7 +33,8 @@ def input_rbfTransform(point_cloud, is_training, bn_decay=None, K=3):
                 z = (-1 + (steps * (z) * 2 ))
                 clusterCenter = [x,y,z]
                 clustersCenterArray.append(clusterCenter)
-                
+    print ("Cluster centroids" ,len(clustersCenterArray))    
+        
     with tf.variable_scope("RBF") as sc:
         newImage = tf.expand_dims(point_cloud, [2])
         print ("RBF", newImage)       
@@ -49,16 +50,64 @@ def input_rbfTransform(point_cloud, is_training, bn_decay=None, K=3):
         distanceSquare = tf.reduce_sum(tf.squared_difference(exp_Input, exp_Clusters),2)
         rbfInput = tf.exp(-distanceSquare) #assuming sigma is 1.0
 
-        print ("rbfInput ", rbfInput)
-    
-    
-    rbfInput = tf.reshape(rbfInput, [batch_size, -1, 1, len(clustersCenterArray)])
-#    input_image = tf.expand_dims(point_cloud, -1)
-#    
-#    print ("input_image ", input_image)
 
+        #Add conv and MLP layer here
+        input_reshape = tf.reshape(rbfInput, [batch_size,num_point, len(clustersCenterArray),-1])
+        net = tf_util.conv2d(input_reshape, 64, [1,2],
+                             padding='VALID', stride=[1,2],
+                             bn=True, is_training=is_training,
+                             scope='tconv1', bn_decay=bn_decay)
+        print ("convl ", net)
+        net = tf_util.conv2d(net, 128, [1,4],
+                             padding='VALID', stride=[1,2],
+                             bn=True, is_training=is_training,
+                             scope='tconv2', bn_decay=bn_decay)
+        
+        net = tf_util.conv2d(net, 512, [1,4],
+                             padding='VALID', stride=[1,2],
+                             bn=True, is_training=is_training,
+                             scope='tconv4', bn_decay=bn_decay)  
+        
+        
+      
+        net = tf_util.max_pool2d(net, [num_point,1],
+                                 padding='VALID', scope='tmaxpool2')
+        
+        net = tf.reshape(net, [batch_size, -1])
+        net = tf_util.fully_connected(net, 512, bn=True, is_training=is_training,
+                                      scope='tfc1', bn_decay=bn_decay)
+
+        net = tf_util.fully_connected(net, 256, bn=True, is_training=is_training,
+                                      scope='tfc2', bn_decay=bn_decay)
+
+       
+        with tf.variable_scope('transform_XYZ') as sc:
+            assert(K==3)
+            weights = tf.get_variable('weights', [256, 3*K],
+                                      initializer=tf.constant_initializer(0.0),
+                                      dtype=tf.float32)
+            biases = tf.get_variable('biases', [3*K],
+                                     initializer=tf.constant_initializer(0.0),
+                                     dtype=tf.float32)
+            biases += tf.constant([1,0,0,0,1,0,0,0,1], dtype=tf.float32)
+            transform = tf.matmul(net, weights)
+            transform = tf.nn.bias_add(transform, biases)
     
-    print ("end transform")
-    return rbfInput
+        transform = tf.reshape(transform, [batch_size, 3, K])
+    
+
+    return transform, net
+
+
+
+
+
+
+
+
+
+
+
+
 
 

@@ -43,14 +43,37 @@ def input_transform_Vector(point_cloud, is_training, bn_decay=None, K=3):
         print ("unitVector", unitVector)
         print ("rbfInput ", rbfInput)
         concatInput = tf.concat([unitVector, rbfInput], 1)
-#        rbfInput = tf.reshape(rbfInput, [batch_size, -1, 1, len(clustersCenterArray)])
+
+        input_reshape = tf.reshape(concatInput, [batch_size,num_point, -1,4])
+        print ("concatInput ", input_reshape)
         
-        net = tf.reshape(concatInput, [batch_size, -1])
+#        input_image = tf.expand_dims(input_reshape, -1)
+        net = tf_util.conv2d(input_reshape, 64, [1,1],
+                         padding='VALID', stride=[1,1],
+                         bn=True, is_training=is_training,
+                         scope='tconv1', bn_decay=bn_decay)
+
+        net = tf_util.conv2d(net, 128, [1,1],
+                             padding='VALID', stride=[1,1],
+                             bn=True, is_training=is_training,
+                             scope='tconv2', bn_decay=bn_decay)
+        net = tf_util.conv2d(net, 1024, [1,1],
+                             padding='VALID', stride=[1,1],
+                             bn=True, is_training=is_training,
+                             scope='tconv3', bn_decay=bn_decay)
+
+        print ("Before max pool ", net)
+        net = tf_util.max_pool2d(net, [num_point,1],
+                                 padding='VALID', scope='tmaxpool')
+        
+        net = tf.reshape(net, [batch_size, -1])
         net = tf_util.fully_connected(net, 512, bn=True, is_training=is_training,
                                       scope='tfc1', bn_decay=bn_decay)
+
         net = tf_util.fully_connected(net, 256, bn=True, is_training=is_training,
                                       scope='tfc2', bn_decay=bn_decay)
-    
+
+       
         with tf.variable_scope('transform_XYZ') as sc:
             assert(K==3)
             weights = tf.get_variable('weights', [256, 3*K],

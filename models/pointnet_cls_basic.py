@@ -8,6 +8,7 @@ sys.path.append(BASE_DIR)
 sys.path.append(os.path.join(BASE_DIR, '../utils'))
 import tf_util
 from transform_Vector import input_transform_Vector, inputvectorFeature
+from RBF_Transform import input_rbfTransform
 
 def placeholder_inputs(batch_size, num_point):
     pointclouds_pl = tf.placeholder(tf.float32, shape=(batch_size, num_point, 3))
@@ -23,11 +24,11 @@ def get_model(point_cloud, is_training, bn_decay=None):
 #    input_image = tf.expand_dims(point_cloud, -1)
     
     with tf.variable_scope('transform_net1') as sc:
-        transform, concatInput = input_transform_Vector(point_cloud, is_training, bn_decay)
+        transform, concatInput = input_rbfTransform(point_cloud, is_training, bn_decay)
     
     print ("transform matrix ", transform)
     print ("concatInput matrix ", concatInput)
-    
+    end_points['transform'] = transform
 #    concatInput = tf.reshape(concatInput, [batch_size, -1, 4])
     point_cloud_transformed = tf.matmul(point_cloud, transform)
 
@@ -43,26 +44,17 @@ def get_model(point_cloud, is_training, bn_decay=None):
                          bn=True, is_training=is_training,
                          scope='conv2', bn_decay=bn_decay)
     
-#    net = tf_util.conv2d(net, 128, [1,1],
-#                         padding='VALID', stride=[1,1],
-#                         bn=True, is_training=is_training,
-#                         scope='conv4', bn_decay=bn_decay)
-#   
-
-    with tf.variable_scope('transform_net2') as sc:
-        transform = inputvectorFeature(net, is_training, bn_decay, K=64)
-    end_points['transform'] = transform
-    net_transformed = tf.matmul(tf.squeeze(net, axis=[2]), transform)
-    net_transformed = tf.expand_dims(net_transformed, [2])
-
-    net = tf_util.conv2d(net_transformed, 64, [1,1],
+    net = tf_util.conv2d(net, 128, [1,1],
                          padding='VALID', stride=[1,1],
                          bn=True, is_training=is_training,
                          scope='conv3', bn_decay=bn_decay)
+   
     net = tf_util.conv2d(net, 128, [1,1],
                          padding='VALID', stride=[1,1],
                          bn=True, is_training=is_training,
                          scope='conv4', bn_decay=bn_decay)
+        
+        
     net = tf_util.conv2d(net, 1024, [1,1],
                          padding='VALID', stride=[1,1],
                          bn=True, is_training=is_training,
@@ -71,16 +63,16 @@ def get_model(point_cloud, is_training, bn_decay=None):
     # Symmetric function: max pooling
     net = tf_util.max_pool2d(net, [num_point,1],
                              padding='VALID', scope='maxpool')
-
+    
+    # MLP on global point cloud vector
     net = tf.reshape(net, [batch_size, -1])
     net = tf_util.fully_connected(net, 512, bn=True, is_training=is_training,
                                   scope='fc1', bn_decay=bn_decay)
-    net = tf_util.dropout(net, keep_prob=0.7, is_training=is_training,
-                          scope='dp1')
     net = tf_util.fully_connected(net, 256, bn=True, is_training=is_training,
                                   scope='fc2', bn_decay=bn_decay)
     net = tf_util.dropout(net, keep_prob=0.7, is_training=is_training,
-                          scope='dp2')
+                          scope='dp1')
+    net = tf_util.fully_connected(net, 40, activation_fn=None, scope='fc3')
 
     return net, end_points, concatInput
 
