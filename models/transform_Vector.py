@@ -6,11 +6,7 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(BASE_DIR)
 sys.path.append(os.path.join(BASE_DIR, '../utils'))
 import tf_util
-from sklearn.metrics.pairwise import rbf_kernel
 
-
-
-            
 def input_transform_Vector(point_cloud, is_training, bn_decay=None, K=3):
     originCentroid = [0.0,0.0,0.0]
     clustersCenterArray = []
