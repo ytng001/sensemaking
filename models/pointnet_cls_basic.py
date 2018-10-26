@@ -30,11 +30,11 @@ def get_model(point_cloud, is_training, bn_decay=None):
     print ("concatInput matrix ", concatInput)
  
 #    concatInput = tf.reshape(concatInput, [batch_size, -1, 4])
-    point_cloud_transformed = tf.matmul(point_cloud, transform)
+    netTransformed = tf.matmul(point_cloud, transform)
 
-    input_image = tf.expand_dims(point_cloud_transformed, -1)
+    netTransformed = tf.expand_dims(netTransformed, -1)
 
-    net = tf_util.conv2d(input_image, 64, [1,3],
+    net = tf_util.conv2d(netTransformed, 64, [1,3],
                          padding='VALID', stride=[1,1],
                          bn=True, is_training=is_training,
                          scope='conv1', bn_decay=bn_decay)
@@ -47,10 +47,10 @@ def get_model(point_cloud, is_training, bn_decay=None):
     with tf.variable_scope('transform_net2') as sc:
         transform = input_rbfFeatureVector(net, is_training, bn_decay, K=64)
     end_points['transform'] = transform
-    net_transformed = tf.matmul(tf.squeeze(net, axis=[2]), transform)
-    net_transformed = tf.expand_dims(net_transformed, [2])   
+    netFeature = tf.matmul(tf.squeeze(net, axis=[2]), transform)
+    netFeature = tf.expand_dims(netFeature, [2])   
     
-    net = tf_util.conv2d(net_transformed, 128, [1,1],
+    net = tf_util.conv2d(netFeature, 128, [1,1],
                          padding='VALID', stride=[1,1],
                          bn=True, is_training=is_training,
                          scope='conv3', bn_decay=bn_decay)
