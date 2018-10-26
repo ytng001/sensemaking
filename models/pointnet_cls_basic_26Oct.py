@@ -8,7 +8,7 @@ sys.path.append(BASE_DIR)
 sys.path.append(os.path.join(BASE_DIR, '../utils'))
 import tf_util
 #from transform_Vector import input_transform_Vector, inputvectorFeature
-from Transform_RBF_Feature import input_rbfTransform,feature_transform_net,input_transform_net
+from RBF_TransformWithFeature import input_rbfTransform,input_rbfFeatureVector
 
 def placeholder_inputs(batch_size, num_point):
     pointclouds_pl = tf.placeholder(tf.float32, shape=(batch_size, num_point, 3))
@@ -24,27 +24,29 @@ def get_model(point_cloud, is_training, bn_decay=None):
 #    input_image = tf.expand_dims(point_cloud, -1)
     
     with tf.variable_scope('transform_net1') as sc:
-        transform = input_transform_net(point_cloud, is_training, bn_decay)
+        transform, concatInput = input_rbfTransform(point_cloud, is_training, bn_decay)
     
+    print ("transform matrix ", transform)
+    print ("concatInput matrix ", concatInput)
+ 
+#    concatInput = tf.reshape(concatInput, [batch_size, -1, 4])
     netTransformed = tf.matmul(point_cloud, transform)
-    print ("netTransformed ", netTransformed)
-    with tf.variable_scope('RBF_Layer') as sc:
-        net = input_rbfTransform(netTransformed, is_training, bn_decay)
-        
-   
-    net = tf.reshape(net, [batch_size, num_point, 1, -1])
 
-    print ("rbf output ", net)
-    net = tf_util.conv2d(net, 64, [1,1],
+    netTransformed = tf.expand_dims(netTransformed, -1)
+
+    net = tf_util.conv2d(netTransformed, 64, [1,3],
                          padding='VALID', stride=[1,1],
                          bn=True, is_training=is_training,
                          scope='conv1', bn_decay=bn_decay)
     
+    net = tf_util.conv2d(net, 64, [1,1],
+                         padding='VALID', stride=[1,1],
+                         bn=True, is_training=is_training,
+                         scope='conv2', bn_decay=bn_decay)
     
     with tf.variable_scope('transform_net2') as sc:
-        transform = feature_transform_net(net, is_training, bn_decay, K=64)
+        transform = input_rbfFeatureVector(net, is_training, bn_decay, K=64)
     end_points['transform'] = transform
-    
     netFeature = tf.matmul(tf.squeeze(net, axis=[2]), transform)
     netFeature = tf.expand_dims(netFeature, [2])   
     
@@ -78,7 +80,7 @@ def get_model(point_cloud, is_training, bn_decay=None):
                           scope='dp1')
     net = tf_util.fully_connected(net, 40, activation_fn=None, scope='fc3')
 
-    return net, end_points
+    return net, end_points, concatInput
 
 
 def get_loss(pred, label, end_points, reg_weight=0.001):
