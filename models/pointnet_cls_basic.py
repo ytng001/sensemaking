@@ -8,7 +8,7 @@ sys.path.append(BASE_DIR)
 sys.path.append(os.path.join(BASE_DIR, '../utils'))
 import tf_util
 #from transform_Vector import input_transform_Vector, inputvectorFeature
-from RBF_Transform import input_rbfTransform,input_rbfFeatureVector
+from RBF_TransformWithFeature import input_rbfTransform,input_rbfFeatureVector
 
 def placeholder_inputs(batch_size, num_point):
     pointclouds_pl = tf.placeholder(tf.float32, shape=(batch_size, num_point, 3))

@@ -105,26 +105,26 @@ def input_rbfFeatureVector(inputs, is_training, bn_decay=None, K=64):
 
     clustersCenterArray = []
     
-
-    for x in range(clusters+1):
+    totalClusters = 5
+    for x in range(totalClusters+1):
         x = (-1 + (steps * (x) * 2 ))
-        for y in range(clusters + 1):
+        for y in range(totalClusters + 1):
             y = (-1 + (steps * (y) *2))
-            for z in range (clusters +1):
+            for z in range (totalClusters +1):
                 z = (-1 + (steps * (z) * 2 ))
                 clusterCenter = [x,y,z]
                 clustersCenterArray.append(clusterCenter)
     print ("Cluster centroids" ,len(clustersCenterArray))
     tensor = tf.constant(clustersCenterArray) 
     
-    net = tf_util.conv2d(inputs, 3, [1,1],
+    netTransform = tf_util.conv2d(inputs, 3, [1,1],
                          padding='VALID', stride=[1,1],
                          bn=True, is_training=is_training,
                          scope='tconv1', bn_decay=bn_decay)
     
-    input_reshape = tf.reshape(net, [-1, 3])
+    netTransform = tf.reshape(netTransform, [-1, 3])
           
-    exp_Input = tf.expand_dims(input_reshape, 1)
+    exp_Input = tf.expand_dims(netTransform, 1)
     exp_Clusters = tf.expand_dims(tensor, 0)
         
     distanceSquare = tf.reduce_sum(tf.squared_difference(exp_Input, exp_Clusters),2)
@@ -133,7 +133,7 @@ def input_rbfFeatureVector(inputs, is_training, bn_decay=None, K=64):
 
     input_reshape = tf.reshape(rbfInput, [batch_size,num_point,-1 ,len(clustersCenterArray)])
     
-    net = tf_util.conv2d(net, 128, [1,1],
+    net = tf_util.conv2d(input_reshape, 128, [1,1],
                          padding='VALID', stride=[1,1],
                          bn=True, is_training=is_training,
                          scope='tconv2', bn_decay=bn_decay)
