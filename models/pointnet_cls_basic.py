@@ -49,7 +49,8 @@ def get_model(point_cloud, is_training, bn_decay=None):
     end_points['transform'] = transform
     net_transformed = tf.matmul(tf.squeeze(net, axis=[2]), transform)
     net_transformed = tf.expand_dims(net_transformed, [2])   
-    net = tf_util.conv2d(net, 128, [1,1],
+    
+    net = tf_util.conv2d(net_transformed, 128, [1,1],
                          padding='VALID', stride=[1,1],
                          bn=True, is_training=is_training,
                          scope='conv3', bn_decay=bn_decay)
