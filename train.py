@@ -95,7 +95,6 @@ def train():
         with tf.device('/gpu:'+str(GPU_INDEX)):
             pointclouds_pl, labels_pl = MODEL.placeholder_inputs(BATCH_SIZE, NUM_POINT)
             is_training_pl = tf.placeholder(tf.bool, shape=())
-            print(is_training_pl)
             
             # Note the global_step=batch parameter to minimize. 
             # That tells the optimizer to helpfully increment the 'batch' parameter for you every time it trains.
@@ -104,8 +103,8 @@ def train():
             tf.summary.scalar('bn_decay', bn_decay)
 
             # Get model and loss 
-            pred, end_points = MODEL.get_model(pointclouds_pl, is_training_pl, bn_decay=bn_decay)
-
+            pred, end_points,testValue = MODEL.get_model(pointclouds_pl, is_training_pl, bn_decay=bn_decay)
+            print (testValue)
             loss = MODEL.get_loss(pred, labels_pl, end_points)
             tf.summary.scalar('loss', loss)
 
@@ -153,7 +152,8 @@ def train():
                'loss': loss,
                'train_op': train_op,
                'merged': merged,
-               'step': batch}
+               'step': batch,
+               'testValue' : testValue}
 
         for epoch in range(MAX_EPOCH):
             log_string('**** EPOCH %03d ****' % (epoch))
@@ -200,11 +200,20 @@ def train_one_epoch(sess, ops, train_writer):
             jittered_data = provider.jitter_point_cloud(rotated_data)
             feed_dict = {ops['pointclouds_pl']: jittered_data,
                          ops['labels_pl']: current_label[start_idx:end_idx],
-                         ops['is_training_pl']: is_training,}
-            summary, step, _, loss_val, pred_val = sess.run([ops['merged'], ops['step'],
-                ops['train_op'], ops['loss'], ops['pred']], feed_dict=feed_dict)
-    
-#            print (directionValue)
+                         ops['is_training_pl']: is_training}
+            summary, step, _, loss_val, pred_val, tempTest = sess.run([ops['merged'], ops['step'],
+                ops['train_op'], ops['loss'], ops['pred'], ops["testValue"]], feed_dict=feed_dict)
+            
+#            print (tempTest[0])
+#            print ("end test")
+#            
+#            tempTest = np.reshape(tempTest, [(32 * 1024),-1])
+#            print (tempTest)
+#            with open('array.txt', 'w') as f:
+#                for item in tempTest:
+#                    f.write("%s\n" % tempTest)
+#        
+        
             train_writer.add_summary(summary, step)
             pred_val = np.argmax(pred_val, 1)
             correct = np.sum(pred_val == current_label[start_idx:end_idx])
