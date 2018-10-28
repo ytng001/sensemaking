@@ -25,6 +25,7 @@ def get_model(point_cloud, is_training, bn_decay=None):
     
     with tf.variable_scope('transform_net') as sc:
         transform = input_transform_net(point_cloud, is_training, bn_decay, K=3)
+    end_points['transform'] = transform
     point_cloud_transformed = tf.matmul(point_cloud, transform)
     point_cloud_transformed = tf.expand_dims(point_cloud_transformed, -1)
     
