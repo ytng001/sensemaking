@@ -8,7 +8,7 @@ sys.path.append(os.path.join(BASE_DIR, '../utils'))
 import tf_util
 from sklearn.metrics.pairwise import rbf_kernel
 
-clusters = 5 #odd number * 3
+clusters = 4 #odd number * 3
 steps = 1/clusters
 
 #define cluster centrod
@@ -33,7 +33,7 @@ def input_rbfTransform(point_cloud, is_training, bn_decay=None, K=3):
                 clusterCenter = [x,y,z]
                 clustersCenterArray.append(clusterCenter)
     
-    print (clustersCenterArray)
+    print ("total clusters ", len(clustersCenterArray))
     with tf.variable_scope("RBF") as sc:      
         tensor = tf.constant(clustersCenterArray)
 
@@ -45,18 +45,17 @@ def input_rbfTransform(point_cloud, is_training, bn_decay=None, K=3):
 #        print ("input_reshape ", exp_Input)
 #        print ("tensor ", exp_Clusters()
         sigma = 0.7
-        print ("exp input ", exp_Input)
-        print ("exp_Clusters ", exp_Clusters)
+#        print ("exp input ", exp_Input)
+#        print ("exp_Clusters ", exp_Clusters)
 #        squaredDiff = tf.squared_difference(exp_Input, exp_Clusters)
         distanceSquare = tf.reduce_sum(tf.squared_difference(exp_Input, exp_Clusters),2)
 
-        print ("distanceSquare ", distanceSquare)
         rbfInput = tf.exp(-distanceSquare / (2* sigma * sigma)) #assuming sigma is 1.0
        
         mask =   tf.where(
         tf.equal(tf.reduce_max(rbfInput, axis=1, keep_dims=True), rbfInput), 
         tf.constant(1.0, shape=rbfInput.shape), 
-        tf.constant(0.01, shape=rbfInput.shape)
+        tf.constant(0.005, shape=rbfInput.shape)
         )
         
         rbfInput = tf.multiply(mask, rbfInput) #SEt non max value to 0
@@ -67,42 +66,23 @@ def input_rbfTransform(point_cloud, is_training, bn_decay=None, K=3):
         input_reshape = tf.reshape(rbfInput, [batch_size,num_point,-1 ,len(clustersCenterArray)])
     
 
-        net = tf_util.conv2d(input_reshape, 128, [1,1],
+        net = tf_util.conv2d(input_reshape, 256, [1,1],
                              padding='VALID', stride=[1,1],
                              bn=True, is_training=is_training,
                              scope='rbf_fc1', bn_decay=bn_decay)
         
         
-
-        print ("convl ", net)
-        net = tf_util.conv2d(net, 64, [1,1],
-                             padding='VALID', stride=[1,1],
-                             bn=True, is_training=is_training,
-                             scope='rbf_fc2', bn_decay=bn_decay)
-        
-              
-        net = tf_util.conv2d(net, 64, [1,1],
+        net = tf_util.conv2d(net, 256, [1,1],
                              padding='VALID', stride=[1,1],
                              bn=True, is_training=is_training,
                              scope='rbf_fc3', bn_decay=bn_decay)  
         
          
-        net = tf_util.conv2d(net, 128, [1,1],
+        net = tf_util.conv2d(net, 512, [1,1],
                              padding='VALID', stride=[1,1],
                              bn=True, is_training=is_training,
                              scope='rbf_fc4', bn_decay=bn_decay)  
-      
-        
-        net = tf_util.conv2d(net, 128, [1,1],
-                             padding='VALID', stride=[1,1],
-                             bn=True, is_training=is_training,
-                             scope='rbf_fc5', bn_decay=bn_decay)  
-        
-         
-        net = tf_util.conv2d(net, 256, [1,1],
-                             padding='VALID', stride=[1,1],
-                             bn=True, is_training=is_training,
-                             scope='rbf_fc6', bn_decay=bn_decay)  
+ 
 
         net = tf_util.conv2d(net, 1024, [1,1],
                              padding='VALID', stride=[1,1],
@@ -111,6 +91,7 @@ def input_rbfTransform(point_cloud, is_training, bn_decay=None, K=3):
       
         net = tf_util.max_pool2d(net, [num_point,1],
                                  padding='VALID', scope='tmaxpool1')
+        
         
         print ("last net ", net)
         net = tf.reshape(net, [batch_size, -1])
