@@ -71,35 +71,35 @@ def input_rbfTransform(point_cloud, is_training, bn_decay=None, K=3):
     
         print ("rbfInput" , input_reshape)
        
-        net = tf_util.conv2d(input_reshape, 256, [1,1],
-                             padding='VALID', stride=[1,1],
-                             bn=True, is_training=is_training,
-                             scope='rbf_fc1', bn_decay=bn_decay)
-        
-        
-        net = tf_util.conv2d(net, 256, [1,1],
-                             padding='VALID', stride=[1,1],
-                             bn=True, is_training=is_training,
-                             scope='rbf_fc3', bn_decay=bn_decay)  
-        
-         
-        net = tf_util.conv2d(net, 512, [1,1],
-                             padding='VALID', stride=[1,1],
-                             bn=True, is_training=is_training,
-                             scope='rbf_fc4', bn_decay=bn_decay)  
- 
-
-        net = tf_util.conv2d(net, 1024, [1,1],
-                             padding='VALID', stride=[1,1],
-                             bn=True, is_training=is_training,
-                             scope='rbf_fc7', bn_decay=bn_decay)  
+#        net = tf_util.conv2d(input_reshape, 256, [1,1],
+#                             padding='VALID', stride=[1,1],
+#                             bn=True, is_training=is_training,
+#                             scope='rbf_fc1', bn_decay=bn_decay)
+#        
+#        
+#        net = tf_util.conv2d(net, 256, [1,1],
+#                             padding='VALID', stride=[1,1],
+#                             bn=True, is_training=is_training,
+#                             scope='rbf_fc3', bn_decay=bn_decay)  
+#        
+#         
+#        net = tf_util.conv2d(net, 512, [1,1],
+#                             padding='VALID', stride=[1,1],
+#                             bn=True, is_training=is_training,
+#                             scope='rbf_fc4', bn_decay=bn_decay)  
+# 
+#
+#        net = tf_util.conv2d(net, 1024, [1,1],
+#                             padding='VALID', stride=[1,1],
+#                             bn=True, is_training=is_training,
+#                             scope='rbf_fc7', bn_decay=bn_decay)  
       
 #        net = tf_util.max_pool2d(net, [num_point,1],
 #                                 padding='VALID', scope='tmaxpool1')
 #        
 #        
-        print ("last net ", net)
-        net = tf.reshape(net, [batch_size, -1])
+#        print ("last net ", net)
+        net = tf.reshape(input_reshape, [batch_size, -1])
         
 #        print ("net reshape ",net)
 #        net = tf_util.fully_connected(net, 512, bn=True, is_training=is_training,
