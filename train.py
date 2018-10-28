@@ -103,8 +103,8 @@ def train():
             tf.summary.scalar('bn_decay', bn_decay)
 
             # Get model and loss 
-            pred, end_points,testValue = MODEL.get_model(pointclouds_pl, is_training_pl, bn_decay=bn_decay)
-            print (testValue)
+            pred, end_points = MODEL.get_model(pointclouds_pl, is_training_pl, bn_decay=bn_decay)
+#            print (testValue)
             loss = MODEL.get_loss(pred, labels_pl, end_points)
             tf.summary.scalar('loss', loss)
 
@@ -152,8 +152,7 @@ def train():
                'loss': loss,
                'train_op': train_op,
                'merged': merged,
-               'step': batch,
-               'testValue' : testValue}
+               'step': batch}
 
         for epoch in range(MAX_EPOCH):
             log_string('**** EPOCH %03d ****' % (epoch))
@@ -201,8 +200,8 @@ def train_one_epoch(sess, ops, train_writer):
             feed_dict = {ops['pointclouds_pl']: jittered_data,
                          ops['labels_pl']: current_label[start_idx:end_idx],
                          ops['is_training_pl']: is_training}
-            summary, step, _, loss_val, pred_val, tempTest = sess.run([ops['merged'], ops['step'],
-                ops['train_op'], ops['loss'], ops['pred'], ops["testValue"]], feed_dict=feed_dict)
+            summary, step, _, loss_val, pred_val = sess.run([ops['merged'], ops['step'],
+                ops['train_op'], ops['loss'], ops['pred']], feed_dict=feed_dict)
             
 #            print (tempTest[0])
 #            print ("end test")
