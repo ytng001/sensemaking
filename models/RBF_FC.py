@@ -8,7 +8,7 @@ sys.path.append(os.path.join(BASE_DIR, '../utils'))
 import tf_util
 from sklearn.metrics.pairwise import rbf_kernel
 
-clusters = 8 #odd number * 3
+clusters = 9#odd number * 3
 steps = 1/clusters
 
 #define cluster centrod
@@ -55,7 +55,7 @@ def input_rbfTransform(point_cloud, is_training, bn_decay=None, K=3):
         mask =   tf.where(
         tf.equal(tf.reduce_max(rbfInput, axis=1, keep_dims=True), rbfInput), 
         tf.constant(1.0, shape=rbfInput.shape), 
-        tf.constant(0.005, shape=rbfInput.shape)
+        tf.constant(0.0, shape=rbfInput.shape)
         )
         
         rbfInput = tf.multiply(mask, rbfInput) #SEt non max value to 0
