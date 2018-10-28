@@ -26,8 +26,11 @@ def get_model(point_cloud, is_training, bn_decay=None):
     with tf.variable_scope('transform_net1') as sc:
         net, testValue = input_rbfTransform(point_cloud, is_training, bn_decay)
     
-    net = tf_util.fully_connected(net, 512, bn=True, is_training=is_training,
+    net = tf_util.fully_connected(net, 256, bn=True, is_training=is_training,
                                   scope='fc1', bn_decay=bn_decay)
+    
+    net = tf_util.fully_connected(net, 512, bn=True, is_training=is_training,
+                                  scope='fc6', bn_decay=bn_decay)
     
     
     net = tf_util.fully_connected(net, 1024, bn=True, is_training=is_training,
@@ -37,12 +40,12 @@ def get_model(point_cloud, is_training, bn_decay=None):
     net = tf_util.fully_connected(net, 512, bn=True, is_training=is_training,
                                   scope='fc3', bn_decay=bn_decay)
     
-    net = tf_util.dropout(net, keep_prob=0.4, is_training=is_training,
-                          scope='dp1')
-    
+#    net = tf_util.dropout(net, keep_prob=0.4, is_training=is_training,
+#                          scope='dp1')
+#    
     net = tf_util.fully_connected(net, 256, bn=True, is_training=is_training,
                                   scope='fc4', bn_decay=bn_decay)
-    net = tf_util.dropout(net, keep_prob=0.4, is_training=is_training,
+    net = tf_util.dropout(net, keep_prob=0.5, is_training=is_training,
                           scope='dp2')
     net = tf_util.fully_connected(net, 40, activation_fn=None, scope='fc5')
 
