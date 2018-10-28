@@ -26,17 +26,20 @@ def get_model(point_cloud, is_training, bn_decay=None):
     with tf.variable_scope('transform_net1') as sc:
         net, testValue = input_rbfTransform(point_cloud, is_training, bn_decay)
     
-    net = tf_util.fully_connected(net, 512, bn=True, is_training=is_training,
+    net = tf_util.fully_connected(net, 1024, bn=True, is_training=is_training,
                                   scope='fc1', bn_decay=bn_decay)
 #    
 #    net = tf_util.fully_connected(net, 512, bn=True, is_training=is_training,
 #                                  scope='fc6', bn_decay=bn_decay)
 #    
-#    
-    net = tf_util.fully_connected(net, 1024, bn=True, is_training=is_training,
+        
+    net = tf_util.fully_connected(net, 2048, bn=True, is_training=is_training,
                                   scope='fc2', bn_decay=bn_decay)
     
-    
+   
+    net = tf_util.fully_connected(net, 1024, bn=True, is_training=is_training,
+                                  scope='fc16', bn_decay=bn_decay)
+                                  
     net = tf_util.fully_connected(net, 512, bn=True, is_training=is_training,
                                   scope='fc3', bn_decay=bn_decay)
     

@@ -8,7 +8,7 @@ sys.path.append(os.path.join(BASE_DIR, '../utils'))
 import tf_util
 from sklearn.metrics.pairwise import rbf_kernel
 
-clusters = 9#odd number * 3
+clusters = 13 #14#odd number * 3
 steps = 1/clusters
 
 #define cluster centrod
@@ -44,7 +44,7 @@ def input_rbfTransform(point_cloud, is_training, bn_decay=None, K=3):
 
 #        print ("input_reshape ", exp_Input)
 #        print ("tensor ", exp_Clusters()
-        sigma = 0.7
+        sigma = 0.6
 #        print ("exp input ", exp_Input)
 #        print ("exp_Clusters ", exp_Clusters)
 #        squaredDiff = tf.squared_difference(exp_Input, exp_Clusters)
