@@ -44,7 +44,7 @@ def input_rbfTransform(point_cloud, is_training, bn_decay=None, K=3):
 
 #        print ("input_reshape ", exp_Input)
 #        print ("tensor ", exp_Clusters()
-        sigma = 1
+        sigma = 0.7
 #        print ("exp input ", exp_Input)
 #        print ("exp_Clusters ", exp_Clusters)
 #        squaredDiff = tf.squared_difference(exp_Input, exp_Clusters)
@@ -55,7 +55,7 @@ def input_rbfTransform(point_cloud, is_training, bn_decay=None, K=3):
         mask =   tf.where(
         tf.equal(tf.reduce_max(rbfInput, axis=1, keep_dims=True), rbfInput), 
         tf.constant(1.0, shape=rbfInput.shape), 
-        tf.constant(0.0, shape=rbfInput.shape)
+        tf.constant(1.0, shape=rbfInput.shape)
         )
         
         rbfInput = tf.multiply(mask, rbfInput) #SEt non max value to 0
