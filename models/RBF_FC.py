@@ -8,7 +8,7 @@ sys.path.append(os.path.join(BASE_DIR, '../utils'))
 import tf_util
 from sklearn.metrics.pairwise import rbf_kernel
 
-clusters = 4 #odd number * 3
+clusters = 5 #odd number * 3
 steps = 1/clusters
 
 #define cluster centrod
@@ -17,7 +17,7 @@ steps = 1/clusters
 def input_rbfTransform(point_cloud, is_training, bn_decay=None, K=3):
     """ Input (XYZ) Transform Net, input is BxNx3 gray image
         Return:
-            Transformation matrix of size 3xK """
+            Transformation matrix o size 3xK """
 
     batch_size = point_cloud.get_shape()[0].value
     num_point = point_cloud.get_shape()[1].value
@@ -44,7 +44,7 @@ def input_rbfTransform(point_cloud, is_training, bn_decay=None, K=3):
 
 #        print ("input_reshape ", exp_Input)
 #        print ("tensor ", exp_Clusters()
-        sigma = 0.7
+        sigma = 1
 #        print ("exp input ", exp_Input)
 #        print ("exp_Clusters ", exp_Clusters)
 #        squaredDiff = tf.squared_difference(exp_Input, exp_Clusters)
@@ -59,13 +59,18 @@ def input_rbfTransform(point_cloud, is_training, bn_decay=None, K=3):
         )
         
         rbfInput = tf.multiply(mask, rbfInput) #SEt non max value to 0
+       
         
-        out = rbfInput
         #Add conv and MLP layer here
+        
+        tempReshape = tf.reshape(rbfInput, [batch_size, num_point ,len(clustersCenterArray)])
+        tempReshape = tf.reduce_max(tempReshape, 1)
+        out = tempReshape
         print ("length of cluster ",len(clustersCenterArray))
-        input_reshape = tf.reshape(rbfInput, [batch_size,num_point,-1 ,len(clustersCenterArray)])
+        input_reshape = tf.reshape(tempReshape, [batch_size,1,1 ,len(clustersCenterArray)])
     
-
+        print ("rbfInput" , input_reshape)
+       
         net = tf_util.conv2d(input_reshape, 256, [1,1],
                              padding='VALID', stride=[1,1],
                              bn=True, is_training=is_training,
@@ -89,10 +94,10 @@ def input_rbfTransform(point_cloud, is_training, bn_decay=None, K=3):
                              bn=True, is_training=is_training,
                              scope='rbf_fc7', bn_decay=bn_decay)  
       
-        net = tf_util.max_pool2d(net, [num_point,1],
-                                 padding='VALID', scope='tmaxpool1')
-        
-        
+#        net = tf_util.max_pool2d(net, [num_point,1],
+#                                 padding='VALID', scope='tmaxpool1')
+#        
+#        
         print ("last net ", net)
         net = tf.reshape(net, [batch_size, -1])
         
