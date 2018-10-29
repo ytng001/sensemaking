@@ -9,7 +9,7 @@ sys.path.append(os.path.join(BASE_DIR, '../utils'))
 import tf_util
 #from transform_Vector import input_transform_Vector, inputvectorFeature
 #from Transform_RBF_Feature import input_rbfTransform,feature_transform_net,input_transform_net
-from RBF_InceptionNet import input_rbfTransform, input_transform_net
+from RBF_InceptionNet import input_rbfTransform,input_transform_net
 def placeholder_inputs(batch_size, num_point):
     pointclouds_pl = tf.placeholder(tf.float32, shape=(batch_size, num_point, 3))
     labels_pl = tf.placeholder(tf.int32, shape=(batch_size))
@@ -25,14 +25,14 @@ def get_model(point_cloud, is_training, bn_decay=None):
     
     with tf.variable_scope('transform_net') as sc:
         transform = input_transform_net(point_cloud, is_training, bn_decay, K=3)
-    end_points['transform'] = transform
+#    end_points['transform'] = transform
     point_cloud_transformed = tf.matmul(point_cloud, transform)
     point_cloud_transformed = tf.expand_dims(point_cloud_transformed, -1)
     
     
     with tf.variable_scope('transform_inceptNet') as sc:
-        net = input_rbfTransform(point_cloud_transformed, is_training, bn_decay)
-    
+        net, featureTransform = input_rbfTransform(point_cloud_transformed, is_training, bn_decay)
+    end_points['transform'] = featureTransform
    
     net = tf_util.fully_connected(net, 512, bn=True, is_training=is_training,
                                   scope='fc1', bn_decay=bn_decay)

@@ -69,16 +69,14 @@ def input_rbfTransform(point_cloud, is_training, bn_decay=None, K=3):
                              bn=True, is_training=is_training,
                              scope='rbf_fc3', bn_decay=bn_decay)  
         
-        print ("shape of net ", net)
-        with tf.variable_scope('FeatureTransform') as sc:
-            featureTransform = feature_transform_net(net, is_training, bn_decay, 64)
-
-        print ("End of feature net ", featureTransform)
+         
+        net = tf_util.conv2d(net, 128, [1,1],
+                             padding='VALID', stride=[1,1],
+                             bn=True, is_training=is_training,
+                             scope='rbf_fc4', bn_decay=bn_decay)  
       
-        net_transformed = tf.matmul(tf.squeeze(net, axis=[2]), featureTransform)
-        net_transformed = tf.expand_dims(net_transformed, [2])
-        print ("Net ", net_transformed)
-        net = tf_util.conv2d(net_transformed, 128, [1,1],
+        
+        net = tf_util.conv2d(net, 128, [1,1],
                              padding='VALID', stride=[1,1],
                              bn=True, is_training=is_training,
                              scope='rbf_fc5', bn_decay=bn_decay)  
@@ -99,9 +97,19 @@ def input_rbfTransform(point_cloud, is_training, bn_decay=None, K=3):
         
         print ("last net ", net)
         net = tf.reshape(net, [batch_size, -1])
+        
+#        print ("net reshape ",net)
+#        net = tf_util.fully_connected(net, 512, bn=True, is_training=is_training,
+#                                      scope='tfc1', bn_decay=bn_decay)
+#
+#        net = tf_util.fully_connected(net, 256, bn=True, is_training=is_training,
+#                                      scope='tfc2', bn_decay=bn_decay)
 
        
-    return net, featureTransform
+    return net
+
+
+
 
 def feature_transform_net(inputs, is_training, bn_decay=None, K=64):
     """ Feature Transform Net, input is BxNx1xK
@@ -109,8 +117,7 @@ def feature_transform_net(inputs, is_training, bn_decay=None, K=64):
             Transformation matrix of size KxK """
     batch_size = inputs.get_shape()[0].value
     num_point = inputs.get_shape()[1].value
-    
-    print ("Start transform feature")
+
     net = tf_util.conv2d(inputs, 64, [1,1],
                          padding='VALID', stride=[1,1],
                          bn=True, is_training=is_training,
@@ -125,8 +132,7 @@ def feature_transform_net(inputs, is_training, bn_decay=None, K=64):
                          scope='tconv3', bn_decay=bn_decay)
     net = tf_util.max_pool2d(net, [num_point,1],
                              padding='VALID', scope='tmaxpool')
-    
-    print ("End of conv2d")
+
     net = tf.reshape(net, [batch_size, -1])
     net = tf_util.fully_connected(net, 512, bn=True, is_training=is_training,
                                   scope='tfc1', bn_decay=bn_decay)
@@ -145,50 +151,6 @@ def feature_transform_net(inputs, is_training, bn_decay=None, K=64):
         transform = tf.nn.bias_add(transform, biases)
 
     transform = tf.reshape(transform, [batch_size, K, K])
-    return transform
-
-def input_transform_net(point_cloud, is_training, bn_decay=None, K=3):
-    """ Input (XYZ) Transform Net, input is BxNx3 gray image
-        Return:
-            Transformation matrix of size 3xK """
-    batch_size = point_cloud.get_shape()[0].value
-    num_point = point_cloud.get_shape()[1].value
-
-    input_image = tf.expand_dims(point_cloud, -1)
-    net = tf_util.conv2d(input_image, 64, [1,3],
-                         padding='VALID', stride=[1,1],
-                         bn=True, is_training=is_training,
-                         scope='tconv1', bn_decay=bn_decay)
-    net = tf_util.conv2d(net, 128, [1,1],
-                         padding='VALID', stride=[1,1],
-                         bn=True, is_training=is_training,
-                         scope='tconv2', bn_decay=bn_decay)
-    net = tf_util.conv2d(net, 1024, [1,1],
-                         padding='VALID', stride=[1,1],
-                         bn=True, is_training=is_training,
-                         scope='tconv3', bn_decay=bn_decay)
-    net = tf_util.max_pool2d(net, [num_point,1],
-                             padding='VALID', scope='tmaxpool')
-
-    net = tf.reshape(net, [batch_size, -1])
-    net = tf_util.fully_connected(net, 512, bn=True, is_training=is_training,
-                                  scope='tfc1', bn_decay=bn_decay)
-    net = tf_util.fully_connected(net, 256, bn=True, is_training=is_training,
-                                  scope='tfc2', bn_decay=bn_decay)
-
-    with tf.variable_scope('transform_XYZ') as sc:
-        assert(K==3)
-        weights = tf.get_variable('weights', [256, 3*K],
-                                  initializer=tf.constant_initializer(0.0),
-                                  dtype=tf.float32)
-        biases = tf.get_variable('biases', [3*K],
-                                 initializer=tf.constant_initializer(0.0),
-                                 dtype=tf.float32)
-        biases += tf.constant([1,0,0,0,1,0,0,0,1], dtype=tf.float32)
-        transform = tf.matmul(net, weights)
-        transform = tf.nn.bias_add(transform, biases)
-
-    transform = tf.reshape(transform, [batch_size, 3, K])
     return transform
 
 
