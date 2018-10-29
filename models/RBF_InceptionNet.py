@@ -8,7 +8,7 @@ sys.path.append(os.path.join(BASE_DIR, '../utils'))
 import tf_util
 from sklearn.metrics.pairwise import rbf_kernel
 
-clusters = 7 #odd number * 3
+clusters = 9 #odd number * 3
 steps = 1/clusters
 
 #define cluster centrod
@@ -46,7 +46,7 @@ def input_rbfTransform(point_cloud, is_training, bn_decay=None, K=3):
         
         print ("input_reshape ", exp_Input)
         print ("tensor ", exp_Clusters)
-        sigma =1.0
+        sigma =0.75
         distanceSquare = tf.reduce_sum(tf.squared_difference(exp_Input, exp_Clusters),2)
         rbfInput = tf.exp(-distanceSquare / (2* sigma)) #assuming sigma is 1.0
 
@@ -63,32 +63,25 @@ def input_rbfTransform(point_cloud, is_training, bn_decay=None, K=3):
                              bn=True, is_training=is_training,
                              scope='rbf_fc2', bn_decay=bn_decay)
         
-              
+        print ("Net ", net)
         net = tf_util.conv2d(net, 64, [1,1],
                              padding='VALID', stride=[1,1],
                              bn=True, is_training=is_training,
-                             scope='rbf_fc3', bn_decay=bn_decay)  
-        
+                             scope='rbf_fc5', bn_decay=bn_decay)  
+
         print ("shape of net ", net)
         with tf.variable_scope('FeatureTransform') as sc:
             featureTransform = feature_transform_net(net, is_training, bn_decay, 64)
-
-        print ("End of feature net ", featureTransform)
-      
+            
         net_transformed = tf.matmul(tf.squeeze(net, axis=[2]), featureTransform)
         net_transformed = tf.expand_dims(net_transformed, [2])
-        print ("Net ", net_transformed)
-        net = tf_util.conv2d(net_transformed, 128, [1,1],
-                             padding='VALID', stride=[1,1],
-                             bn=True, is_training=is_training,
-                             scope='rbf_fc5', bn_decay=bn_decay)  
         
-         
-        net = tf_util.conv2d(net, 256, [1,1],
+                         
+        net = tf_util.conv2d(net_transformed, 256, [1,1],
                              padding='VALID', stride=[1,1],
                              bn=True, is_training=is_training,
                              scope='rbf_fc6', bn_decay=bn_decay)  
-
+        
         net = tf_util.conv2d(net, 1024, [1,1],
                              padding='VALID', stride=[1,1],
                              bn=True, is_training=is_training,
@@ -130,6 +123,8 @@ def feature_transform_net(inputs, is_training, bn_decay=None, K=64):
     net = tf.reshape(net, [batch_size, -1])
     net = tf_util.fully_connected(net, 512, bn=True, is_training=is_training,
                                   scope='tfc1', bn_decay=bn_decay)
+    net = tf_util.dropout(net, keep_prob=0.4, is_training=is_training,
+                          scope='ftdp')
     net = tf_util.fully_connected(net, 256, bn=True, is_training=is_training,
                                   scope='tfc2', bn_decay=bn_decay)
 
