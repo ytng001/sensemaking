@@ -116,14 +116,14 @@ def feature_transform_net(inputs, is_training, bn_decay=None, K=64):
                          padding='VALID', stride=[1,1],
                          bn=True, is_training=is_training,
                          scope='tconv3', bn_decay=bn_decay)
-    net = tf_util.max_pool2d(net, [num_point,1],
-                             padding='VALID', scope='tmaxpool')
+    net = tf_util.avg_pool2d(net, [num_point,1],
+                             padding='VALID', scope='tAvgPool')
     
     print ("End of conv2d")
     net = tf.reshape(net, [batch_size, -1])
     net = tf_util.fully_connected(net, 512, bn=True, is_training=is_training,
                                   scope='tfc1', bn_decay=bn_decay)
-    net = tf_util.dropout(net, keep_prob=0.5, is_training=is_training,
+    net = tf_util.dropout(net, keep_prob=0.4, is_training=is_training,
                           scope='ftdp')
     net = tf_util.fully_connected(net, 256, bn=True, is_training=is_training,
                                   scope='tfc2', bn_decay=bn_decay)
