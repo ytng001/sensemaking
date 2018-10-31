@@ -58,7 +58,7 @@ def input_rbfTransform(point_cloud, is_training, bn_decay=None, K=3):
                              bn=True, is_training=is_training,
                              scope='rbf_fc1', bn_decay=bn_decay)
         print ("convl ", net)
-        net = tf_util.conv2d(net, 64, [1,1],
+        net = tf_util.conv2d(net, 128, [1,1],
                              padding='VALID', stride=[1,1],
                              bn=True, is_training=is_training,
                              scope='rbf_fc2', bn_decay=bn_decay)
@@ -68,7 +68,6 @@ def input_rbfTransform(point_cloud, is_training, bn_decay=None, K=3):
                              padding='VALID', stride=[1,1],
                              bn=True, is_training=is_training,
                              scope='rbf_fc5', bn_decay=bn_decay)  
-
                          
         net = tf_util.conv2d(net, 256, [1,1],
                              padding='VALID', stride=[1,1],
@@ -115,9 +114,9 @@ def input_transform_net(point_cloud, is_training, bn_decay=None, K=3):
     net = tf_util.fully_connected(net, 512, bn=True, is_training=is_training,
                                   scope='tfc1', bn_decay=bn_decay)
     
-    net = tf_util.dropout(net, keep_prob=0.4, is_training=is_training,
-                          scope='dp1')
-        
+#    net = tf_util.dropout(net, keep_prob=0.7, is_training=is_training,
+#                          scope='dp1')
+#        
     net = tf_util.fully_connected(net, 256, bn=True, is_training=is_training,
                                   scope='tfc2', bn_decay=bn_decay)
 

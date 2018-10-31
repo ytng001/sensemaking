@@ -17,7 +17,7 @@ import pc_util
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--gpu', type=int, default=0, help='GPU to use [default: GPU 0]')
-parser.add_argument('--model', default='RadialNet', help='Model name: RadialNet [default: pointnet_cls]')
+parser.add_argument('--model', default='RadialNetInceptionAndTransform', help='Model name: RadialNet [default: pointnet_cls]')
 parser.add_argument('--batch_size', type=int, default=4, help='Batch Size during training [default: 1]')
 parser.add_argument('--num_point', type=int, default=1024, help='Point Number [256/512/1024/2048] [default: 1024]')
 parser.add_argument('--model_path', default='log/model.ckpt', help='model checkpoint file path [default: log/model.ckpt]')
