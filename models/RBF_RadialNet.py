@@ -132,7 +132,7 @@ def feature_transform_net(inputs, is_training, bn_decay=None, K=64):
    net = tf_util.fully_connected(net, 512, bn=True, is_training=is_training,
                                  scope='tfc1', bn_decay=bn_decay)
    
-   net = tf_util.dropout(net, keep_prob=0.4, is_training=is_training,
+   net = tf_util.dropout(net, keep_prob=0.5, is_training=is_training,
                           scope='tfdp1')
    net = tf_util.fully_connected(net, 256, bn=True, is_training=is_training,
                                  scope='tfc2', bn_decay=bn_decay)
