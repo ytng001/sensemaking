@@ -9,7 +9,7 @@ import tf_util
 from sklearn.metrics.pairwise import rbf_kernel
 
 
-clusters = 7 #odd number * 3
+clusters = 9 #odd number * 3
 steps = 1/clusters
 
 #define cluster centrod
@@ -47,7 +47,7 @@ def input_rbfTransform(point_cloud, is_training, bn_decay=None, K=3):
       
        print ("input_reshape ", exp_Input)
        print ("tensor ", exp_Clusters)
-       sigma =1.0
+       sigma =0.75
        distanceSquare = tf.reduce_sum(tf.squared_difference(exp_Input, exp_Clusters),2)
        rbfInput = tf.exp(-distanceSquare / (2* sigma)) #assuming sigma is 1.0
 
@@ -131,6 +131,9 @@ def feature_transform_net(inputs, is_training, bn_decay=None, K=64):
    net = tf.reshape(net, [batch_size, -1])
    net = tf_util.fully_connected(net, 512, bn=True, is_training=is_training,
                                  scope='tfc1', bn_decay=bn_decay)
+   
+   net = tf_util.dropout(net, keep_prob=0.4, is_training=is_training,
+                          scope='tfdp1')
    net = tf_util.fully_connected(net, 256, bn=True, is_training=is_training,
                                  scope='tfc2', bn_decay=bn_decay)
 
@@ -174,6 +177,8 @@ def input_transform_net(point_cloud, is_training, bn_decay=None, K=3):
    net = tf.reshape(net, [batch_size, -1])
    net = tf_util.fully_connected(net, 512, bn=True, is_training=is_training,
                                  scope='tfc1', bn_decay=bn_decay)
+   
+
    net = tf_util.fully_connected(net, 256, bn=True, is_training=is_training,
                                  scope='tfc2', bn_decay=bn_decay)
 
