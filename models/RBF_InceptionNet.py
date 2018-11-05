@@ -8,7 +8,7 @@ sys.path.append(os.path.join(BASE_DIR, '../utils'))
 import tf_util
 from sklearn.metrics.pairwise import rbf_kernel
 
-clusters = 9 #odd number * 3
+clusters = 13 #odd number * 3
 steps = 1/clusters
 
 #define cluster centrod
