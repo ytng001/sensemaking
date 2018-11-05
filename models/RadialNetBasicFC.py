@@ -34,23 +34,31 @@ def get_model(point_cloud, is_training, bn_decay=None):
     net = tf_util.fully_connected(net, 2000, bn=True, is_training=is_training,
                                   scope='fc2', bn_decay=bn_decay)
          
+    print ("Net 1 ", net)
+    net = tf_util.fully_connected(net, 1000, bn=True, is_training=is_training,
+                                  scope='fc3', bn_decay=bn_decay)
+      
+    net = tf_util.dropout(net, keep_prob=0.4, is_training=is_training,
+                          scope='dp1')
+    
+    
     print ("Net 2 ", net)
     net = tf_util.fully_connected(net, 512, bn=True, is_training=is_training,
                                   scope='fc4', bn_decay=bn_decay)
     
     print ("Net 3 ", net)
     net = tf_util.dropout(net, keep_prob=0.4, is_training=is_training,
-                          scope='dp1')
+                          scope='dp2')
     
     print ("Dopout 1 ", net)
     net = tf_util.fully_connected(net, 256, bn=True, is_training=is_training,
                                   scope='fc5', bn_decay=bn_decay)
     print ("Net 4 ", net)
     net = tf_util.dropout(net, keep_prob=0.4, is_training=is_training,
-                          scope='dp1')
+                          scope='dp3')
     
     print ("Dopout 2 ", net)
-    net = tf_util.fully_connected(net, 40, activation_fn=None, scope='fc3')
+    net = tf_util.fully_connected(net, 40, activation_fn=None, scope='fc6')
 
     print ("Last ", net)
     return net, end_points
