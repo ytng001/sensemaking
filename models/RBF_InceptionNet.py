@@ -13,6 +13,49 @@ steps = 1/clusters
 
 #define cluster centrod
 
+def input_RBFbasicLayer(point_cloud, is_training, bn_decay=None):
+
+    print ("point_cloud ", point_cloud)
+    batch_size = point_cloud.get_shape()[0].value
+    print ("batch_size ", batch_size)
+    num_point = point_cloud.get_shape()[1].value
+    clustersCenterArray = []
+    
+
+    for x in range(clusters+1):
+        x = (-1 + (steps * (x) * 2 ))
+        for y in range(clusters + 1):
+            y = (-1 + (steps * (y) *2))
+            for z in range (clusters +1):
+                z = (-1 + (steps * (z) * 2 ))
+                clusterCenter = [x,y,z]
+                clustersCenterArray.append(clusterCenter)
+    print ("Cluster centroids" ,len(clustersCenterArray)) 
+    
+        
+    with tf.variable_scope("RBF_BasicLayer") as sc:      
+        tensor = tf.constant(clustersCenterArray)
+
+        input_reshape = tf.reshape(point_cloud, [-1, 3])
+          
+        exp_Input = tf.expand_dims(input_reshape, 1)
+        exp_Clusters = tf.expand_dims(tensor, 0)
+        
+        print ("input_reshape ", exp_Input)
+        print ("tensor ", exp_Clusters)
+        sigma =0.75
+        distanceSquare = tf.reduce_sum(tf.squared_difference(exp_Input, exp_Clusters),2)
+        rbfInput = tf.exp(-distanceSquare / (2* sigma)) #assuming sigma is 1.0
+
+        print ("rbf Input ", rbfInput)
+        #Add conv and MLP layer here
+        net = tf.reshape(rbfInput, [batch_size,num_point ,len(clustersCenterArray)])
+        
+        collapsedInput = tf.reduce_max(net,1,keepdims = True)
+        collapsedInput = tf.reshape(collapsedInput, [batch_size ,len(clustersCenterArray)])
+        print ("Reshape Net ", collapsedInput)
+    return collapsedInput
+
             
 def input_rbfTransform(point_cloud, is_training, bn_decay=None, K=3):
     """ Input (XYZ) Transform Net, input is BxNx3 gray image
