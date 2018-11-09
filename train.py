@@ -16,7 +16,7 @@ import tf_util
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--gpu', type=int, default=0, help='GPU to use [default: GPU 0]')
-parser.add_argument('--model', default='RadialNet', help='Model name: RadialNetBasicFC, RadialNetBasic, RadialNet, RadialNetInceptionAndTransform [default: RadialNetBasic]')
+parser.add_argument('--model', default='RadialNetBasicFC', help='Model name: RadialNetBasicFC, RadialNetBasic, RadialNet, RadialNetInceptionAndTransform [default: RadialNetBasic]')
 parser.add_argument('--log_dir', default='log', help='Log dir [default: log]')
 parser.add_argument('--num_point', type=int, default=1024, help='Point Number [256/512/1024/2048] [default: 2048]')
 parser.add_argument('--max_epoch', type=int, default=250, help='Epoch to run [default: 250]')
@@ -163,7 +163,7 @@ def train():
 
 
 def train_one_epoch(sess, ops, train_writer):
-    """ ops: dict mapping from string to tf ops """
+
     is_training = True
     
     # Shuffle train files
@@ -209,7 +209,7 @@ def train_one_epoch(sess, ops, train_writer):
 
         
 def eval_one_epoch(sess, ops, test_writer):
-    """ ops: dict mapping from string to tf ops """
+
     is_training = False
     total_correct = 0
     total_seen = 0
