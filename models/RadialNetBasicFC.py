@@ -7,6 +7,7 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(BASE_DIR)
 sys.path.append(os.path.join(BASE_DIR, '../utils'))
 import tf_util
+
 #from transform_Vector import input_transform_Vector, inputvectorFeature
 #from Transform_RBF_Feature import input_rbfTransform,feature_transform_net,input_transform_net
 from RBF_InceptionNet import input_rbfTransform, input_RBFbasicLayer

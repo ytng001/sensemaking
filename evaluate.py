@@ -14,7 +14,6 @@ sys.path.append(os.path.join(BASE_DIR, 'utils'))
 import provider
 import pc_util
 
-
 parser = argparse.ArgumentParser()
 parser.add_argument('--gpu', type=int, default=0, help='GPU to use [default: GPU 0]')
 parser.add_argument('--model', default='RadialNet', help='Model name: RadialNet [default: pointnet_cls]')
@@ -24,7 +23,6 @@ parser.add_argument('--model_path', default='log/model.ckpt', help='model checkp
 parser.add_argument('--dump_dir', default='dump', help='dump folder path [dump]')
 parser.add_argument('--visu', action='store_true', help='Whether to dump image for error case [default: False]')
 FLAGS = parser.parse_args()
-
 
 BATCH_SIZE = FLAGS.batch_size
 NUM_POINT = FLAGS.num_point
@@ -74,7 +72,7 @@ def evaluate(num_votes):
     config.log_device_placement = True
     sess = tf.Session(config=config)
 
-    # Restore variables from disk.
+    # Restore Model for evaluation
     saver.restore(sess, MODEL_PATH)
     log_string("Model restored.")
 

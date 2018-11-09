@@ -58,7 +58,6 @@ BN_DECAY_CLIP = 0.99
 
 HOSTNAME = socket.gethostname()
 
-# ModelNet40 official train/test split
 TRAIN_FILES = provider.getDataFiles( \
     os.path.join(BASE_DIR, 'data/modelnet40_ply_hdf5_2048/train_files.txt'))
 TEST_FILES = provider.getDataFiles(\
@@ -72,10 +71,10 @@ def log_string(out_str):
 
 def get_learning_rate(batch):
     learning_rate = tf.train.exponential_decay(
-                        BASE_LEARNING_RATE,  # Base learning rate.
-                        batch * BATCH_SIZE,  # Current index into the dataset.
-                        DECAY_STEP,          # Decay step.
-                        DECAY_RATE,          # Decay rate.
+                        BASE_LEARNING_RATE,
+                        batch * BATCH_SIZE, 
+                        DECAY_STEP,      
+                        DECAY_RATE,         
                         staircase=True)
     learning_rate = tf.maximum(learning_rate, 0.00001) # CLIP THE LEARNING RATE!
     return learning_rate        
@@ -132,7 +131,6 @@ def train():
         sess = tf.Session(config=config)
 
         # Add summary writers
-        #merged = tf.merge_all_summaries()
         merged = tf.summary.merge_all()
         train_writer = tf.summary.FileWriter(os.path.join(LOG_DIR, 'train'),
                                   sess.graph)
@@ -140,9 +138,6 @@ def train():
 
         # Init variables
         init = tf.global_variables_initializer()
-        # To fix the bug introduced in TF 0.12.1 as in
-        # http://stackoverflow.com/questions/41543774/invalidargumenterror-for-tensor-bool-tensorflow-0-12-1
-        #sess.run(init)
         sess.run(init, {is_training_pl: True})
 
         ops = {'pointclouds_pl': pointclouds_pl,
@@ -161,7 +156,6 @@ def train():
             train_one_epoch(sess, ops, train_writer)
             eval_one_epoch(sess, ops, test_writer)
             
-            # Save the variables to disk.
             if epoch % 10 == 0:
                 save_path = saver.save(sess, os.path.join(LOG_DIR, "model.ckpt"))
                 log_string("Model saved in file: %s" % save_path)
@@ -202,16 +196,6 @@ def train_one_epoch(sess, ops, train_writer):
                          ops['is_training_pl']: is_training}
             summary, step, _, loss_val, pred_val = sess.run([ops['merged'], ops['step'],
                 ops['train_op'], ops['loss'], ops['pred']], feed_dict=feed_dict)
-            
-#            print (tempTest[0])
-#            print ("end test")
-#            
-#            tempTest = np.reshape(tempTest, [(32 * 1024),-1])
-#            print (tempTest)
-#            with open('array.txt', 'w') as f:
-#                for item in tempTest:
-#                    f.write("%s\n" % tempTest)
-#        
         
             train_writer.add_summary(summary, step)
             pred_val = np.argmax(pred_val, 1)
