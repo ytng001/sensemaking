@@ -38,9 +38,9 @@ def get_model(point_cloud, is_training, bn_decay=None):
     net = tf_util.fully_connected(net, 1000, bn=True, is_training=is_training,
                                   scope='fc3', bn_decay=bn_decay)
       
-    net = tf_util.dropout(net, keep_prob=0.4, is_training=is_training,
-                          scope='dp1')
-    
+#    net = tf_util.dropout(net, keep_prob=0.4, is_training=is_training,
+#                          scope='dp1')
+#    
     
     print ("Net 2 ", net)
     net = tf_util.fully_connected(net, 512, bn=True, is_training=is_training,

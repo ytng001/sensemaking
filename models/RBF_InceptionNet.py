@@ -8,7 +8,7 @@ sys.path.append(os.path.join(BASE_DIR, '../utils'))
 import tf_util
 from sklearn.metrics.pairwise import rbf_kernel
 
-clusters = 13 #odd number * 3
+clusters = 7 #odd number * 3
 steps = 1/clusters
 
 #define cluster centrod
@@ -43,12 +43,13 @@ def input_RBFbasicLayer(point_cloud, is_training, bn_decay=None):
         
         print ("input_reshape ", exp_Input)
         print ("tensor ", exp_Clusters)
-        sigma =0.75
+        sigma =0.5
         distanceSquare = tf.reduce_sum(tf.squared_difference(exp_Input, exp_Clusters),2)
         rbfInput = tf.exp(-distanceSquare / (2* sigma)) #assuming sigma is 1.0
 
         print ("rbf Input ", rbfInput)
         #Add conv and MLP layer here
+        print ("Num of points ", num_point)
         net = tf.reshape(rbfInput, [batch_size,num_point ,len(clustersCenterArray)])
         
         collapsedInput = tf.reduce_max(net,1,keepdims = True)
@@ -56,7 +57,35 @@ def input_RBFbasicLayer(point_cloud, is_training, bn_decay=None):
         print ("Reshape Net ", collapsedInput)
     return collapsedInput
 
-            
+def input_InceptionNet(point_cloud, is_training, bn_decay=None, K=3):
+
+    print ("input_InceptionNet" , point_cloud)
+#    numOfClusters = point_cloud.get_shape()[2].value
+    
+    input_reshape = tf.reshape(point_cloud, [32,1,1,512])
+    
+    print ("input_reshape" , input_reshape)
+    net = tf_util.conv2d(input_reshape, 128, [1,1],
+                             padding='VALID', stride=[1,1],
+                             bn=True, is_training=is_training,
+                             scope='rbf_fc1', bn_decay=bn_decay)
+
+    net = tf_util.conv2d(net, 256, [1,1],
+                             padding='VALID', stride=[1,1],
+                             bn=True, is_training=is_training,
+                             scope='rbf_fc6', bn_decay=bn_decay)  
+        
+    net = tf_util.conv2d(net, 1024, [1,1],
+                             padding='VALID', stride=[1,1],
+                             bn=True, is_training=is_training,
+                             scope='rbf_fc7', bn_decay=bn_decay)  
+      
+
+
+    net = tf.reshape(net, [32, -1])
+    print ("last net ", net) 
+    return net
+
 def input_rbfTransform(point_cloud, is_training, bn_decay=None, K=3):
     """ Input (XYZ) Transform Net, input is BxNx3 gray image
         Return:
@@ -96,31 +125,30 @@ def input_rbfTransform(point_cloud, is_training, bn_decay=None, K=3):
 
         #Add conv and MLP layer here
         input_reshape = tf.reshape(rbfInput, [batch_size,num_point,-1 ,len(clustersCenterArray)])
-        net = tf_util.conv2d(input_reshape, 128, [1,1],
+        net = tf_util.conv2d(input_reshape, 64, [1,1],
                              padding='VALID', stride=[1,1],
                              bn=True, is_training=is_training,
                              scope='rbf_fc1', bn_decay=bn_decay)
         print ("convl ", net)
-        net = tf_util.conv2d(net, 128, [1,1],
+        net = tf_util.conv2d(net, 64, [1,1],
                              padding='VALID', stride=[1,1],
                              bn=True, is_training=is_training,
                              scope='rbf_fc2', bn_decay=bn_decay)
         
-        print ("Net ", net)
-        net = tf_util.conv2d(net, 256, [1,1],
+        net = tf_util.conv2d(net, 64, [1,1],
                              padding='VALID', stride=[1,1],
                              bn=True, is_training=is_training,
-                             scope='rbf_fc5', bn_decay=bn_decay)  
-                         
-        net = tf_util.conv2d(net, 256, [1,1],
+                             scope='rbf_fc3', bn_decay=bn_decay)  
+                
+        net = tf_util.conv2d(net, 128, [1,1],
                              padding='VALID', stride=[1,1],
                              bn=True, is_training=is_training,
-                             scope='rbf_fc6', bn_decay=bn_decay)  
+                             scope='rbf_fc4', bn_decay=bn_decay)  
         
         net = tf_util.conv2d(net, 1024, [1,1],
                              padding='VALID', stride=[1,1],
                              bn=True, is_training=is_training,
-                             scope='rbf_fc7', bn_decay=bn_decay)  
+                             scope='rbf_fc5', bn_decay=bn_decay)  
       
         net = tf_util.max_pool2d(net, [num_point,1],
                                  padding='VALID', scope='tmaxpool1')

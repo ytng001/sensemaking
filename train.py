@@ -16,9 +16,9 @@ import tf_util
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--gpu', type=int, default=0, help='GPU to use [default: GPU 0]')
-parser.add_argument('--model', default='RadialNetBasicFC', help='Model name: RadialNetBasicFC, RadialNet, RadialNetInceptionAndTransform [default: RadialNetBasic]')
+parser.add_argument('--model', default='RadialNetBasicFC', help='Model name: RadialNetBasicFC,RadialNetBasic, RadialNet, RadialNetInceptionAndTransform [default: RadialNetBasic]')
 parser.add_argument('--log_dir', default='log', help='Log dir [default: log]')
-parser.add_argument('--num_point', type=int, default=1024, help='Point Number [256/512/1024/2048] [default: 1024]')
+parser.add_argument('--num_point', type=int, default=1024, help='Point Number [256/512/1024/2048] [default: 2048]')
 parser.add_argument('--max_epoch', type=int, default=250, help='Epoch to run [default: 250]')
 parser.add_argument('--batch_size', type=int, default=32, help='Batch Size during training [default: 32]')
 parser.add_argument('--learning_rate', type=float, default=0.001, help='Initial learning rate [default: 0.001]')
