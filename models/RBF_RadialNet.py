@@ -47,7 +47,7 @@ def input_rbfTransform(point_cloud, is_training, bn_decay=None, K=3):
       
        print ("input_reshape ", exp_Input)
        print ("tensor ", exp_Clusters)
-       sigma =0.25
+       sigma =0.2
        distanceSquare = tf.reduce_sum(tf.squared_difference(exp_Input, exp_Clusters),2)
        rbfInput = tf.exp(-distanceSquare / (2* sigma)) #assuming sigma is 1.0
 
